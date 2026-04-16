@@ -2,49 +2,31 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// Priority: .env file → localStorage (setup wizard) → placeholder defaults
-const envConfig = import.meta.env.VITE_FIREBASE_PROJECT_ID ? {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
-} : null;
-
-// Fallback: check localStorage (from setup wizard)
-const storedConfig = localStorage.getItem('firebase_config');
-let localConfig: any = null;
-if (storedConfig) {
-  try {
-    localConfig = JSON.parse(storedConfig);
-  } catch (e) {
-    console.error('Failed to parse Firebase config from localStorage:', e);
-  }
-}
-
-// Use env config first, then localStorage, then placeholders
-const firebaseConfig = envConfig || localConfig || {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+// Firebase web API keys are intentionally public (security is enforced via Firestore Rules)
+const firebaseConfig = {
+  apiKey: "AIzaSyDLbt0e_2sYAutjbil8tMuPVVjdf5J3RpM",
+  authDomain: "arapp-4d777.firebaseapp.com",
+  databaseURL: "https://arapp-4d777-default-rtdb.firebaseio.com",
+  projectId: "arapp-4d777",
+  storageBucket: "arapp-4d777.firebasestorage.app",
+  messagingSenderId: "426570182917",
+  appId: "1:426570182917:web:9970587afc07ddd0e5876c"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore with offline persistence
+// Initialize Firestore
 export const db = getFirestore(app);
 
-// Enable offline persistence (optional but recommended)
+// Enable offline persistence — non-blocking, failures are warnings only
 enableIndexedDbPersistence(db).catch((err) => {
   if (err.code === 'failed-precondition') {
-    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+    console.warn('[Firebase] Persistence disabled: multiple tabs open.');
   } else if (err.code === 'unimplemented') {
-    console.warn('Browser does not support offline persistence.');
+    console.warn('[Firebase] Persistence not supported in this browser.');
+  } else {
+    console.warn('[Firebase] Persistence error:', err.message);
   }
 });
 
