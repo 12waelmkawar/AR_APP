@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import PinAuth from './components/PinAuth';
 import Layout from './components/Layout';
 import ConnectionStatus from './components/ConnectionStatus';
-import FirebaseSetupWizard from './components/FirebaseSetupWizard';
 import Dashboard from './pages/Dashboard';
 import Places from './pages/Places';
 import PlaceForm from './pages/PlaceForm';
@@ -14,18 +13,9 @@ import './App.css';
 const App: React.FC = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [showSetupWizard, setShowSetupWizard] = useState(false);
 
   useEffect(() => {
     setChecking(true);
-    
-    // Check if Firebase is configured (via .env or localStorage)
-    const hasEnvConfig = !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
-    const hasLocalConfig = !!localStorage.getItem('firebase_config');
-    if (!hasEnvConfig && !hasLocalConfig) {
-      setShowSetupWizard(true);
-    }
-    
     const auth = isAuthenticated();
     setAuthenticated(auth);
     setChecking(false);
@@ -35,18 +25,8 @@ const App: React.FC = () => {
     setAuthenticated(true);
   };
 
-  const handleSetupComplete = () => {
-    setShowSetupWizard(false);
-    // Reload to apply Firebase config
-    window.location.reload();
-  };
-
   if (checking) {
     return <div className="app-loading">Loading...</div>;
-  }
-
-  if (showSetupWizard) {
-    return <FirebaseSetupWizard onComplete={handleSetupComplete} />;
   }
 
   if (!authenticated) {
