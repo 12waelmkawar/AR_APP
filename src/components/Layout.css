@@ -1,90 +1,169 @@
 .layout {
   display: flex;
   min-height: 100vh;
-  background: #f7fafc;
+  background: #f1f5f9;
 }
 
+/* ── Sidebar ─────────────────────────────────────────────── */
 .sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   color: white;
   display: flex;
   flex-direction: column;
   padding: 0;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
   position: fixed;
   height: 100vh;
   overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.3s ease;
 }
 
 .sidebar-header {
-  padding: 32px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.1);
+  padding: 28px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .sidebar-header h2 {
   margin: 0;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.sidebar-subtitle {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
 .sidebar-nav {
   flex: 1;
-  padding: 24px 0;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 24px;
-  color: rgba(255, 255, 255, 0.85);
+  padding: 12px 16px;
+  color: #94a3b8;
   text-decoration: none;
   transition: all 0.2s;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
-  margin: 4px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
 }
 
 .nav-link:hover {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.07);
+  color: #e2e8f0;
 }
 
 .nav-link.active {
-  background: rgba(255, 255, 255, 0.25);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.25), rgba(118, 75, 162, 0.25));
   color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
 }
 
 .logout-btn {
-  margin: 20px 12px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  border-radius: 10px;
+  margin: 16px 12px;
+  padding: 13px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
+  font-family: inherit;
 }
 
 .logout-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
+/* ── Main Content ────────────────────────────────────────── */
 .main-content {
   margin-left: 260px;
   flex: 1;
-  padding: 40px;
+  padding: 36px 40px;
   overflow-y: auto;
   min-height: 100vh;
+}
+
+/* ── Mobile Bottom Nav ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    padding: 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 20px 20px 0 0;
+    overflow: visible;
+    z-index: 200;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    padding: 8px 8px 4px;
+    gap: 4px;
+    flex: 1;
+    justify-content: space-around;
+    overflow-x: auto;
+  }
+
+  .nav-link {
+    flex-direction: column;
+    font-size: 10px;
+    gap: 4px;
+    padding: 8px 12px;
+    white-space: nowrap;
+    border-radius: 10px;
+    min-width: 60px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .logout-btn {
+    margin: 8px 8px 8px 0;
+    padding: 8px 14px;
+    font-size: 12px;
+    border-radius: 10px;
+    align-self: center;
+    white-space: nowrap;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 20px 16px 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 16px 12px 100px;
+  }
 }

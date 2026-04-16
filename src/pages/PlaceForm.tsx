@@ -5,12 +5,25 @@ import './PlaceForm.css';
 
 const BUILDINGS = ['Bloc Blue', 'Bloc Vert', 'Administration'];
 const CATEGORIES = ['classroom', 'lab', 'office', 'restroom', 'cafeteria', 'library', 'other'];
-const DATASETS = [
-  'blocBlue-etage0-p1',
-  'blocBlue-etage0-p2',
-  'blocVert-etage0-p1',
-  'administrationrdc1',
-  'administrationrdc2'
+
+// Minimap icons — emoji + label pairs
+const MINIMAP_ICONS = [
+  { value: '🏫', label: 'School' },
+  { value: '🔬', label: 'Lab' },
+  { value: '🏢', label: 'Office' },
+  { value: '🚻', label: 'Restroom' },
+  { value: '☕', label: 'Cafeteria' },
+  { value: '📚', label: 'Library' },
+  { value: '🖥️', label: 'Computer' },
+  { value: '🎓', label: 'Lecture' },
+  { value: '🏥', label: 'Medical' },
+  { value: '🅿️', label: 'Parking' },
+  { value: '🚪', label: 'Entrance' },
+  { value: '📍', label: 'Pin' },
+  { value: '⭐', label: 'Star' },
+  { value: '🔧', label: 'Technical' },
+  { value: '🎨', label: 'Art' },
+  { value: '🏃', label: 'Sports' },
 ];
 
 const PlaceForm: React.FC = () => {
@@ -21,21 +34,20 @@ const PlaceForm: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     displayName: '',
-    floor: 0,
     building: BUILDINGS[0],
     category: CATEGORIES[0],
-    description: '',
     capacity: 30,
     positionX: 0,
     positionY: 0,
     positionZ: 0,
-    vuforiaDataset: DATASETS[0],
-    amenities: [] as string[],
-    isActive: true
+    minimapIcon: '📍',
+    minimapColor: '#667eea',
+    isActive: true,
   });
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     if (isEditing && id) {
@@ -48,17 +60,15 @@ const PlaceForm: React.FC = () => {
             setFormData({
               name: place.name,
               displayName: place.displayName,
-              floor: place.floor,
               building: place.building,
               category: place.category,
-              description: place.description || '',
               capacity: place.capacity || 30,
               positionX: place.position.x,
               positionY: place.position.y,
               positionZ: place.position.z,
-              vuforiaDataset: place.vuforiaDataset || DATASETS[0],
-              amenities: place.amenities || [],
-              isActive: place.isActive
+              minimapIcon: place.minimapIcon || '📍',
+              minimapColor: place.minimapColor || '#667eea',
+              isActive: place.isActive,
             });
           }
         } catch (error) {
@@ -79,20 +89,22 @@ const PlaceForm: React.FC = () => {
       const placeData = {
         name: formData.name,
         displayName: formData.displayName,
-        floor: formData.floor,
+        floor: 0,
         building: formData.building,
         category: formData.category,
-        description: formData.description,
+        description: '',
         capacity: formData.capacity,
-        // Force values to double (not int64) in Firestore by ensuring decimal precision
+        // Force values to double (not int64) in Firestore
         position: {
           x: Number(formData.positionX.toFixed(6)),
           y: Number(formData.positionY.toFixed(6)),
-          z: Number(formData.positionZ.toFixed(6))
+          z: Number(formData.positionZ.toFixed(6)),
         },
-        vuforiaDataset: formData.vuforiaDataset,
-        amenities: formData.amenities,
-        isActive: formData.isActive
+        vuforiaDataset: '',
+        amenities: [],
+        minimapIcon: formData.minimapIcon,
+        minimapColor: formData.minimapColor,
+        isActive: formData.isActive,
       };
 
       if (isEditing && id) {
@@ -101,7 +113,8 @@ const PlaceForm: React.FC = () => {
         await addPlace(placeData);
       }
 
-      navigate('/places');
+      setSaveSuccess(true);
+      setTimeout(() => navigate('/places'), 1200);
     } catch (error) {
       console.error('Error saving place:', error);
       alert('Error saving place. Please try again.');
@@ -110,57 +123,79 @@ const PlaceForm: React.FC = () => {
     }
   };
 
-  const toggleAmenity = (amenity: string) => {
-    setFormData(prev => ({
-      ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter(a => a !== amenity)
-        : [...prev.amenities, amenity]
-    }));
-  };
-
   if (fetching) {
-    return <div className="form-loading">Loading place details...</div>;
+    return (
+      <div className="form-loading">
+        <div className="loading-spinner" />
+        <span>Loading place details...</span>
+      </div>
+    );
   }
 
   return (
     <div className="place-form-page">
+      {/* Header */}
       <div className="form-header">
-        <h1>{isEditing ? 'Edit Place' : 'Add New Place'}</h1>
-        <button className="btn-cancel" onClick={() => navigate('/places')}>
-          Cancel
-        </button>
+        <div className="form-header-left">
+          <button className="btn-back" onClick={() => navigate('/places')}>
+            ←
+          </button>
+          <div>
+            <h1>{isEditing ? 'Edit Place' : 'New Place'}</h1>
+            <p className="form-subtitle">{isEditing ? 'Update place details' : 'Add a location to the AR map'}</p>
+          </div>
+        </div>
+        <div className="status-toggle-inline">
+          <span className={`status-badge ${formData.isActive ? 'active' : 'inactive'}`}>
+            {formData.isActive ? '● Active' : '○ Inactive'}
+          </span>
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+            />
+            <span className="slider" />
+          </label>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="place-form">
-        <div className="form-section">
-          <h2>Basic Information</h2>
-          
-          <div className="form-group">
-            <label>Name (ID)*</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={e => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., room_a101"
-              required
-            />
+
+        {/* Basic Info */}
+        <div className="form-card">
+          <div className="form-card-header">
+            <span className="card-icon">📝</span>
+            <h2>Basic Information</h2>
           </div>
 
-          <div className="form-group">
-            <label>Display Name*</label>
-            <input
-              type="text"
-              value={formData.displayName}
-              onChange={e => setFormData({ ...formData, displayName: e.target.value })}
-              placeholder="e.g., Computer Science Lab"
-              required
-            />
-          </div>
-
-          <div className="form-row">
+          <div className="form-row-2">
             <div className="form-group">
-              <label>Building*</label>
+              <label>Internal ID *</label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                placeholder="e.g., room_a101"
+                required
+              />
+              <span className="field-hint">Used as document ID in Firestore</span>
+            </div>
+            <div className="form-group">
+              <label>Display Name *</label>
+              <input
+                type="text"
+                value={formData.displayName}
+                onChange={e => setFormData({ ...formData, displayName: e.target.value })}
+                placeholder="e.g., Computer Science Lab"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-row-3">
+            <div className="form-group">
+              <label>Building *</label>
               <select
                 value={formData.building}
                 onChange={e => setFormData({ ...formData, building: e.target.value })}
@@ -169,140 +204,156 @@ const PlaceForm: React.FC = () => {
                 {BUILDINGS.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
-
             <div className="form-group">
-              <label>Floor*</label>
-              <input
-                type="number"
-                value={formData.floor}
-                onChange={e => setFormData({ ...formData, floor: parseInt(e.target.value) })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Category*</label>
+              <label>Category *</label>
               <select
                 value={formData.category}
                 onChange={e => setFormData({ ...formData, category: e.target.value })}
                 required
               >
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
               </select>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Description</label>
-            <textarea
-              value={formData.description}
-              onChange={e => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              placeholder="Optional description..."
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Capacity</label>
-            <input
-              type="number"
-              value={formData.capacity}
-              onChange={e => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
-              min={1}
-            />
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h2>Position (Unity Coordinates)</h2>
-          
-          <div className="form-row">
             <div className="form-group">
-              <label>X Position*</label>
+              <label>Capacity</label>
               <input
                 type="number"
-                step="0.01"
-                value={formData.positionX}
-                onChange={e => setFormData({ ...formData, positionX: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Y Position*</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.positionY}
-                onChange={e => setFormData({ ...formData, positionY: parseFloat(e.target.value) })}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Z Position*</label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.positionZ}
-                onChange={e => setFormData({ ...formData, positionZ: parseFloat(e.target.value) })}
-                required
+                value={formData.capacity}
+                onChange={e => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
+                min={1}
               />
             </div>
           </div>
         </div>
 
-        <div className="form-section">
-          <h2>AR Configuration</h2>
-          
-          <div className="form-group">
-            <label>Vuforia Dataset</label>
-            <select
-              value={formData.vuforiaDataset}
-              onChange={e => setFormData({ ...formData, vuforiaDataset: e.target.value })}
-            >
-              {DATASETS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
+        {/* Position */}
+        <div className="form-card">
+          <div className="form-card-header">
+            <span className="card-icon">📐</span>
+            <h2>Unity Position</h2>
           </div>
-        </div>
+          <p className="card-desc">3D coordinates from the Unity scene (Inspector → Transform → Position)</p>
 
-        <div className="form-section">
-          <h2>Amenities</h2>
-          
-          <div className="amenities-grid">
-            {['projector', 'computers', 'ac', 'whiteboard', 'wifi', 'printer', 'tv', 'sound_system'].map(amenity => (
-              <label key={amenity} className="amenity-checkbox">
+          <div className="form-row-3">
+            <div className="form-group">
+              <label>X</label>
+              <div className="axis-input x-axis">
+                <span className="axis-label">X</span>
                 <input
-                  type="checkbox"
-                  checked={formData.amenities.includes(amenity)}
-                  onChange={() => toggleAmenity(amenity)}
+                  type="number"
+                  step="0.001"
+                  value={formData.positionX}
+                  onChange={e => setFormData({ ...formData, positionX: parseFloat(e.target.value) || 0 })}
+                  required
                 />
-                <span>{amenity.replace('_', ' ')}</span>
-              </label>
-            ))}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Y</label>
+              <div className="axis-input y-axis">
+                <span className="axis-label">Y</span>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={formData.positionY}
+                  onChange={e => setFormData({ ...formData, positionY: parseFloat(e.target.value) || 0 })}
+                  required
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Z</label>
+              <div className="axis-input z-axis">
+                <span className="axis-label">Z</span>
+                <input
+                  type="number"
+                  step="0.001"
+                  value={formData.positionZ}
+                  onChange={e => setFormData({ ...formData, positionZ: parseFloat(e.target.value) || 0 })}
+                  required
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="form-section">
-          <h2>Status</h2>
-          
-          <label className="toggle-switch">
-            <input
-              type="checkbox"
-              checked={formData.isActive}
-              onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-            />
-            <span className="slider"></span>
-            <span className="toggle-label">Active</span>
-          </label>
+        {/* Minimap */}
+        <div className="form-card">
+          <div className="form-card-header">
+            <span className="card-icon">🗺️</span>
+            <h2>Minimap Appearance</h2>
+          </div>
+
+          <div className="minimap-preview">
+            <div
+              className="minimap-marker-preview"
+              style={{ background: formData.minimapColor }}
+            >
+              {formData.minimapIcon}
+            </div>
+            <div className="minimap-preview-info">
+              <strong>{formData.displayName || 'Place Name'}</strong>
+              <span>{formData.category}</span>
+            </div>
+          </div>
+
+          <div className="form-row-2">
+            <div className="form-group">
+              <label>Marker Color</label>
+              <div className="color-input-wrap">
+                <input
+                  type="color"
+                  value={formData.minimapColor}
+                  onChange={e => setFormData({ ...formData, minimapColor: e.target.value })}
+                  className="color-picker"
+                />
+                <input
+                  type="text"
+                  value={formData.minimapColor}
+                  onChange={e => setFormData({ ...formData, minimapColor: e.target.value })}
+                  placeholder="#667eea"
+                  className="color-text"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Selected Icon</label>
+              <div className="selected-icon-display">
+                <span className="selected-icon-emoji">{formData.minimapIcon}</span>
+                <span className="selected-icon-name">
+                  {MINIMAP_ICONS.find(i => i.value === formData.minimapIcon)?.label || 'Custom'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Minimap Icon</label>
+            <div className="icon-grid">
+              {MINIMAP_ICONS.map(icon => (
+                <button
+                  key={icon.value}
+                  type="button"
+                  className={`icon-btn ${formData.minimapIcon === icon.value ? 'selected' : ''}`}
+                  onClick={() => setFormData({ ...formData, minimapIcon: icon.value })}
+                  title={icon.label}
+                  style={formData.minimapIcon === icon.value ? { borderColor: formData.minimapColor, background: formData.minimapColor + '22' } : {}}
+                >
+                  <span className="icon-emoji">{icon.value}</span>
+                  <span className="icon-label">{icon.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
+        {/* Actions */}
         <div className="form-actions">
           <button type="button" className="btn-cancel" onClick={() => navigate('/places')}>
             Cancel
           </button>
-          <button type="submit" className="btn-submit" disabled={loading}>
-            {loading ? 'Saving...' : isEditing ? 'Update Place' : 'Create Place'}
+          <button type="submit" className={`btn-submit ${saveSuccess ? 'success' : ''}`} disabled={loading || saveSuccess}>
+            {saveSuccess ? '✓ Saved!' : loading ? 'Saving...' : isEditing ? 'Update Place' : 'Create Place'}
           </button>
         </div>
       </form>
