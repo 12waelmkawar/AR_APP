@@ -84,10 +84,11 @@ const PlaceForm: React.FC = () => {
         category: formData.category,
         description: formData.description,
         capacity: formData.capacity,
+        // Force values to double (not int64) in Firestore by ensuring decimal precision
         position: {
-          x: formData.positionX,
-          y: formData.positionY,
-          z: formData.positionZ
+          x: Number(formData.positionX.toFixed(6)),
+          y: Number(formData.positionY.toFixed(6)),
+          z: Number(formData.positionZ.toFixed(6))
         },
         vuforiaDataset: formData.vuforiaDataset,
         amenities: formData.amenities,

@@ -19,9 +19,10 @@ const App: React.FC = () => {
   useEffect(() => {
     setChecking(true);
     
-    // Check if Firebase is configured
-    const firebaseConfig = localStorage.getItem('firebase_config');
-    if (!firebaseConfig) {
+    // Check if Firebase is configured (via .env or localStorage)
+    const hasEnvConfig = !!import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    const hasLocalConfig = !!localStorage.getItem('firebase_config');
+    if (!hasEnvConfig && !hasLocalConfig) {
       setShowSetupWizard(true);
     }
     
