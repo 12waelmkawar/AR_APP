@@ -19,7 +19,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="layout">
       <aside className="sidebar">
         <div className="sidebar-header">
-          <h2>🎯 AR Admin</h2>
+          <img src="/logo.jpg" alt="AR Admin Logo" className="sidebar-logo" />
+          <h2>AR Admin</h2>
         </div>
         <nav className="sidebar-nav">
           <Link 
