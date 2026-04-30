@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { addPlace, updatePlace, getPlaces } from '../firebase/placesService';
+import { getBuildings } from '../firebase/buildingsService';
 import './PlaceForm.css';
 
-const BUILDINGS = ['Bloc Blue', 'Bloc Vert', 'Administration'];
 const CATEGORIES = ['classroom', 'lab', 'office', 'restroom', 'cafeteria', 'library', 'other'];
 
 // Minimap icons — emoji + label pairs
@@ -34,7 +34,7 @@ const PlaceForm: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     displayName: '',
-    building: BUILDINGS[0],
+    building: '',
     category: CATEGORIES[0],
     capacity: 30,
     positionX: 0,
@@ -44,6 +44,8 @@ const PlaceForm: React.FC = () => {
     minimapColor: '#667eea',
     isActive: true,
   });
+
+  const [buildings, setBuildings] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditing);
@@ -80,6 +82,29 @@ const PlaceForm: React.FC = () => {
       fetchPlace();
     }
   }, [id, isEditing]);
+
+  useEffect(() => {
+    const fetchBuildings = async () => {
+      try {
+        const data = await getBuildings();
+        const names = data.map(building => building.name);
+        setBuildings(names);
+
+        if (!formData.building && names.length > 0) {
+          setFormData(current => ({ ...current, building: names[0] }));
+        }
+      } catch (error) {
+        console.error('Error fetching buildings:', error);
+      }
+    };
+
+    fetchBuildings();
+  }, []);
+
+  useEffect(() => {
+    if (!formData.building) return;
+    setBuildings(current => (current.includes(formData.building) ? current : [formData.building, ...current]));
+  }, [formData.building]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,9 +225,16 @@ const PlaceForm: React.FC = () => {
                 value={formData.building}
                 onChange={e => setFormData({ ...formData, building: e.target.value })}
                 required
+                disabled={buildings.length === 0}
               >
-                {BUILDINGS.map(b => <option key={b} value={b}>{b}</option>)}
+                {buildings.length === 0 && <option value="">No buildings available</option>}
+                {buildings.map(b => <option key={b} value={b}>{b}</option>)}
               </select>
+              {buildings.length === 0 && (
+                <span className="field-hint">
+                  Add a building in <Link to="/buildings/new">Buildings</Link> before creating places.
+                </span>
+              )}
             </div>
             <div className="form-group">
               <label>Category *</label>

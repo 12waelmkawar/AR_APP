@@ -6,6 +6,8 @@ import ConnectionStatus from './components/ConnectionStatus';
 import Dashboard from './pages/Dashboard';
 import Places from './pages/Places';
 import PlaceForm from './pages/PlaceForm';
+import Buildings from './pages/Buildings';
+import BuildingForm from './pages/BuildingForm';
 import DatabaseSettings from './pages/DatabaseSettings';
 import { isAuthenticated } from './firebase/authService';
 import './App.css';
@@ -42,6 +44,9 @@ const App: React.FC = () => {
           <Route path="/places" element={<Places />} />
           <Route path="/places/new" element={<PlaceForm />} />
           <Route path="/places/edit/:id" element={<PlaceForm />} />
+          <Route path="/buildings" element={<Buildings />} />
+          <Route path="/buildings/new" element={<BuildingForm />} />
+          <Route path="/buildings/edit/:id" element={<BuildingForm />} />
           <Route path="/database-settings" element={<DatabaseSettings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

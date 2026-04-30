@@ -36,10 +36,22 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             📍 Places
           </Link>
           <Link 
+            to="/buildings" 
+            className={`nav-link ${location.pathname === '/buildings' ? 'active' : ''}`}
+          >
+            🏢 Buildings
+          </Link>
+          <Link 
             to="/places/new" 
             className={`nav-link ${location.pathname === '/places/new' ? 'active' : ''}`}
           >
             ➕ Add Place
+          </Link>
+          <Link 
+            to="/buildings/new" 
+            className={`nav-link ${location.pathname === '/buildings/new' ? 'active' : ''}`}
+          >
+            ➕ Add Building
           </Link>
           <Link 
             to="/database-settings" 

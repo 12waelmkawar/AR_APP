@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getPlaces } from '../firebase/placesService';
+import { getBuildings } from '../firebase/buildingsService';
 import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
@@ -11,12 +12,10 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const places = await getPlaces();
+        const [places, buildingDocs] = await Promise.all([getPlaces(), getBuildings()]);
         setTotalPlaces(places.length);
         setActivePlaces(places.filter(p => p.isActive).length);
-        
-        const uniqueBuildings = [...new Set(places.map(p => p.building))];
-        setBuildings(uniqueBuildings);
+        setBuildings(buildingDocs.map(building => building.name));
       } catch (error) {
         console.error('Error fetching stats:', error);
       } finally {
