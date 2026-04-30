@@ -52,7 +52,7 @@ const BuildingForm: React.FC = () => {
       const buildingData: Omit<Building, 'id' | 'createdAt' | 'updatedAt'> = {
         name: formData.name,
         code: formData.code,
-        description: formData.description || undefined,
+        description: formData.description,
         floors: [0],
         isActive: formData.isActive,
       };
